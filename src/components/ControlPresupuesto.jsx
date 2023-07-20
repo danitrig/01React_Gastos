@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
+import NuevoPresupuesto from "./NuevoPresupuesto";
 
-const ControlPresupuesto = ({ gastos, presupuesto }) => {
+const ControlPresupuesto = ({
+  gastos,
+  presupuesto,
+  setGastos,
+  setPresupuesto,
+  setIsValidPresupuesto,
+}) => {
+  const [porcentaje, setPorcentaje] = useState(0);
   const [disponible, setDisponible] = useState(0);
   const [gastado, setGastado] = useState(0);
 
@@ -12,9 +22,18 @@ const ControlPresupuesto = ({ gastos, presupuesto }) => {
 
     const totalDisponible = presupuesto - totalGastado;
 
-    setDisponible(totalDisponible);
+    //Cáclculo de porcentaje
+    const nuevoPorcentaje = (
+      ((presupuesto - totalDisponible) / presupuesto) *
+      100
+    ).toFixed(2);
 
+    setDisponible(totalDisponible);
     setGastado(totalGastado);
+
+    setTimeout(() => {
+      setPorcentaje(nuevoPorcentaje);
+    }, 1000);
   }, [gastos]);
 
   const formatearCantidad = (cantidad) => {
@@ -23,16 +42,37 @@ const ControlPresupuesto = ({ gastos, presupuesto }) => {
       currency: "EUR",
     });
   };
+
+  const handleResetApp = () => {
+    const resultado = confirm("¿Estás seguro de reiniciar el presupuesto?");
+    if (resultado) {
+      setGastos([]);
+      setPresupuesto(0);
+      setIsValidPresupuesto(false);
+    } else {
+    }
+  };
   return (
     <div className="contenedor-presupuesto contenedor sombra dos-columnas">
       <div>
-        <p>Gráfica</p>
+        <CircularProgressbar
+          styles={buildStyles({
+            pathColor: porcentaje > 100 ? "#DC2626" : "#3B82F6",
+            trailColor: "#f5f5f5",
+            textColor: porcentaje > 100 ? "#DC2626" : "#3B82F6",
+          })}
+          value={porcentaje}
+          text={`${porcentaje}% Gastado`}
+        />
       </div>
       <div className="contenido-presupuesto">
+        <button className="reset-app" type="button" onClick={handleResetApp}>
+          Resetear App
+        </button>
         <p>
           <span>Presupuesto: </span> {formatearCantidad(presupuesto)}
         </p>
-        <p>
+        <p className={`${disponible < 0 ? "negativo" : ""}`}>
           <span>Disponible: </span> {formatearCantidad(disponible)}
         </p>
         <p>
